@@ -33,7 +33,7 @@ locals {
     "iamcredentials.googleapis.com",
     "cloudresourcemanager.googleapis.com",
     "billingbudgets.googleapis.com",
-    "storage.googleapis.com"
+    "storage.googleapis.com",
   ]
 }
 
@@ -43,4 +43,16 @@ resource "google_project_service" "apis" {
   service = each.value
 
   disable_on_destroy = false
+}
+
+resource "google_healthcare_dataset" "dca" {
+  name     = "dca"
+  location = var.region
+}
+
+resource "google_healthcare_fhir_store" "fhir" {
+  name                 = "fhir"
+  version              = "R4"
+  dataset              = google_healthcare_dataset.dca.id
+  enable_update_create = true
 }
