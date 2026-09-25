@@ -11,7 +11,9 @@ A clinician-facing AI agent for dementia workups and trial matching, built on GC
 
 ```text
 infra/
-  bootstrap/    Terraform for the remote state bucket
+  bootstrap/    State bucket, Terraform service account, billing budget
+  envs/
+    dev/        Dev environment via service account
 ```
 
 ## Prerequisites
@@ -24,8 +26,6 @@ infra/
 
 ### 1. Create the project
 
-One time setup.
-
 ```bash
 gcloud auth login
 gcloud auth application-default login
@@ -33,63 +33,51 @@ gcloud auth application-default login
 gcloud projects create <PROJECT_ID>
 gcloud billing projects link <PROJECT_ID> --billing-account=<BILLING_ACCOUNT_ID>
 gcloud config set project <PROJECT_ID>
-
-# Some APIs require a quota project when called with user credentials
 gcloud config set billing/quota_project <PROJECT_ID>
 gcloud auth application-default set-quota-project <PROJECT_ID>
 
 gcloud services enable billingbudgets.googleapis.com storage.googleapis.com
 ```
 
-### 2. Set budget alert
+### 2. Bootstrap
 
-_Note this will NOT stop the spending, that in the in roadmap_
+Creates the state bucket, the `terraform` service account, and a 25 USD budget alert.
 
-```bash
-gcloud billing budgets create \
-  --billing-account=<BILLING_ACCOUNT_ID> \
-  --display-name="DCA dev budget" \
-  --budget-amount=25USD \
-  --filter-projects=projects/<PROJECT_ID> \
-  --threshold-rule=percent=0.5,basis=current-spend \
-  --threshold-rule=percent=0.9,basis=current-spend \
-  --threshold-rule=percent=1.0,basis=forecasted-spend
-```
-
-### 3. Create the bucket
-
-Set `project` in `infra/bootstrap/terraform.tfvars` to your project ID.
-
-// @??? How do enterprise organizations solve this problem
-The bootstrap keeps its state in the bucket it creates, so the bucket has to exist before that backend works... bit of a chicken and the egg problem... For now comment out the `backend "gcs"` block in `infra/bootstrap/main.tf` for this first run. Terraform uses local state until step 4.
-// ???@
+Set `project`, `billing_account`, and `terraform_admin` in `infra/bootstrap/terraform.tfvars`. Comment out the `backend "gcs"` block in `infra/bootstrap/main.tf`.
 
 ```bash
 cd infra/bootstrap
 terraform init
-terraform plan
 terraform apply
 ```
 
-### 4. Move the state into the bucket
-
-Uncomment the `backend "gcs"` block and set `bucket` to `<PROJECT_ID>-tfstate`. Backend settings can't use variables, so the name is written out in full.
+Uncomment the `backend "gcs"` block and set `bucket` to `<PROJECT_ID>-tfstate`.
 
 ```bash
 terraform init -migrate-state
-gcloud storage ls gs://<PROJECT_ID>-tfstate/bootstrap/
-terraform plan
 rm -f terraform.tfstate terraform.tfstate.backup
 ```
 
-The `ls` should list `default.tfstate`, and `plan` should report no changes.
+### 3. Dev environment
 
-To tear the bucket down later, move the state back to local first. Comment out the backend block again and run `terraform init -migrate-state`.
+Set `project` and `terraform_service_email` in `infra/envs/dev/terraform.tfvars`.
+
+```bash
+cd infra/envs/dev
+terraform init \
+  -backend-config="bucket=<PROJECT_ID>-tfstate" \
+  -backend-config="impersonate_service_account=terraform@<PROJECT_ID>.iam.gserviceaccount.com"
+terraform apply
+```
 
 ## Roadmap
 
 - [x] Move bootstrap state into the bucket
-- [ ] Dev environment in Terraform. FHIR store, Cloud Run service, IAM, budget
+- [x] Dev environment with project APIs
+- [x] Terraform service account with impersonation
+- [x] Billing budget managed in Terraform
+- [ ] FHIR store
+- [ ] Artifact Registry and a Cloud Run service
 - [ ] HARD stop on spending limits in GCP
 - [ ] GitHub Actions with Workload Identity Federation
 - [ ] Agent service with one FHIR tool
