@@ -88,5 +88,7 @@ resource "google_cloud_run_v2_service" "agent" {
       image = "us-docker.pkg.dev/cloudrun/container/hello"
     }
   }
+
+  depends_on = [google_service_account_iam_member.terraform_as_agent]
 }
 
