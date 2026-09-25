@@ -55,6 +55,7 @@ locals {
     "roles/browser",
     "roles/healthcare.datasetAdmin",
     "roles/healthcare.fhirStoreAdmin",
+    "roles/artifactregistry.editor",
   ]
 }
 

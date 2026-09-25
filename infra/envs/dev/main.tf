@@ -56,3 +56,10 @@ resource "google_healthcare_fhir_store" "fhir" {
   dataset              = google_healthcare_dataset.dca.id
   enable_update_create = true
 }
+
+resource "google_artifact_registry_repository" "images" {
+  repository_id = "images"
+  location      = var.region
+  format        = "DOCKER"
+  description   = "DCA ${var.region} Docker Image Repository"
+}
