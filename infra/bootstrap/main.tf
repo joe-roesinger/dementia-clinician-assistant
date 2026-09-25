@@ -53,6 +53,8 @@ locals {
   terraform_service_account_roles = [
     "roles/serviceusage.serviceUsageAdmin",
     "roles/browser",
+    "roles/healthcare.datasetAdmin",
+    "roles/healthcare.fhirStoreAdmin",
   ]
 }
 
