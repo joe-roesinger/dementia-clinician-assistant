@@ -8,3 +8,8 @@ variable "region" {
   description = "Region to host in"
   default     = "us-central-1"
 }
+
+variable "terraform_service_email" {
+  type        = string
+  description = "Service account email"
+}
