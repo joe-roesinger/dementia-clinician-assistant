@@ -16,6 +16,9 @@ terraform {
 provider "google" {
   project = var.project
   region  = var.region
+
+  billing_project = var.project
+  user_project_override = true
 }
 
 resource "google_storage_bucket" "tfstate" {
@@ -75,4 +78,41 @@ resource "google_service_account_iam_member" "terraform_impasta" {
   service_account_id = google_service_account.terraform.name
   role               = "roles/iam.serviceAccountTokenCreator"
   member             = "user:${var.terraform_admin}"
+}
+
+data "google_project" "this" {}
+
+resource "google_billing_budget" "monthly_budget" {
+  billing_account = "018F21-3E0136-6F72BD"
+  display_name = "Monthly DCA Dev Budget"
+  amount {
+    specified_amount {
+      currency_code = "USD"
+      units = "25"
+    }
+  }
+  
+  budget_filter {
+    projects = ["projects/${data.google_project.this.number}"]
+  }
+
+  threshold_rules {
+    threshold_percent = 0.5
+    spend_basis = "CURRENT_SPEND"
+  }
+
+  threshold_rules {
+    threshold_percent = 0.9
+    spend_basis = "CURRENT_SPEND"
+  }
+
+  threshold_rules {
+    threshold_percent = 1.0
+    spend_basis = "FORECASTED_SPEND"
+  }
+}
+
+import {
+  to = google_billing_budget.monthly_budget
+  id = "billingAccounts/018F21-3E0136-6F72BD/budgets/0ab248f9-fbc3-4c72-a757-ed091d3e37a2"
 }
