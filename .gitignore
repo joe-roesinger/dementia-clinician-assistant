@@ -1,0 +1,7 @@
+# Ignore folder with flash cards/notes
+learning/
+
+# Terraform files
+.terraform/
+*.tfstate
+*.tfstate.*
