@@ -46,6 +46,13 @@ resource "google_storage_bucket" "tfstate" {
   }
 }
 
+locals {
+  terraform_service_account_roles = [
+    "roles/serviceusage.serviceUsageAdmin",
+    "roles/browser",
+  ]
+}
+
 resource "google_service_account" "terraform" {
   account_id = "terraform"
 }
@@ -57,8 +64,10 @@ resource "google_storage_bucket_iam_member" "tfstate_read_write" {
 }
 
 resource "google_project_iam_member" "project_perms" {
+  for_each = toset(local.terraform_service_account_roles)
+
   project = var.project
-  role    = "roles/serviceusage.serviceUsageAdmin"
+  role    = each.value
   member  = google_service_account.terraform.member
 }
 
