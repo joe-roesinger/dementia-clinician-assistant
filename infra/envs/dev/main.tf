@@ -19,6 +19,8 @@ provider "google" {
     app = "dca"
     env = "dev"
   }
+
+  impersonate_service_account = var.terraform_service_email
 }
 
 locals {
