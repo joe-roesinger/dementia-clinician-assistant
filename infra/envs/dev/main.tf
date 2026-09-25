@@ -63,3 +63,30 @@ resource "google_artifact_registry_repository" "images" {
   format        = "DOCKER"
   description   = "DCA ${var.region} Docker Image Repository"
 }
+
+resource "google_service_account" "agent" {
+  account_id = "agent-service"
+}
+
+resource "google_service_account_iam_member" "terraform_as_agent" {
+  service_account_id = google_service_account.agent.name
+  role               = "roles/iam.serviceAccountUser"
+  member             = "serviceAccount:${var.terraform_service_email}"
+}
+
+resource "google_cloud_run_v2_service" "agent" {
+  name                = "agent"
+  location            = var.region
+  deletion_protection = false
+  template {
+    service_account = google_service_account.agent.email
+    scaling {
+      min_instance_count = 0
+      max_instance_count = 1
+    }
+    containers {
+      image = "us-docker.pkg.dev/cloudrun/container/hello"
+    }
+  }
+}
+

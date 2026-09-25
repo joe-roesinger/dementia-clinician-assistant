@@ -56,6 +56,8 @@ locals {
     "roles/healthcare.datasetAdmin",
     "roles/healthcare.fhirStoreAdmin",
     "roles/artifactregistry.editor",
+    "roles/iam.serviceAccountAdmin",
+    "roles/run.developer"
   ]
 }
 
