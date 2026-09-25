@@ -60,6 +60,10 @@ gcloud billing budgets create \
 
 Set `project` in `infra/bootstrap/terraform.tfvars` to your project ID.
 
+// @??? How do enterprise organizations solve this problem
+The bootstrap keeps its state in the bucket it creates, so the bucket has to exist before that backend works... bit of a chicken and the egg problem... For now comment out the `backend "gcs"` block in `infra/bootstrap/main.tf` for this first run. Terraform uses local state until step 4.
+// ???@
+
 ```bash
 cd infra/bootstrap
 terraform init
@@ -67,9 +71,24 @@ terraform plan
 terraform apply
 ```
 
+### 4. Move the state into the bucket
+
+Uncomment the `backend "gcs"` block and set `bucket` to `<PROJECT_ID>-tfstate`. Backend settings can't use variables, so the name is written out in full.
+
+```bash
+terraform init -migrate-state
+gcloud storage ls gs://<PROJECT_ID>-tfstate/bootstrap/
+terraform plan
+rm -f terraform.tfstate terraform.tfstate.backup
+```
+
+The `ls` should list `default.tfstate`, and `plan` should report no changes.
+
+To tear the bucket down later, move the state back to local first. Comment out the backend block again and run `terraform init -migrate-state`.
+
 ## Roadmap
 
-- [ ] Move bootstrap state into the bucket
+- [x] Move bootstrap state into the bucket
 - [ ] Dev environment in Terraform. FHIR store, Cloud Run service, IAM, budget
 - [ ] HARD stop on spending limits in GCP
 - [ ] GitHub Actions with Workload Identity Federation
