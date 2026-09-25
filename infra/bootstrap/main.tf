@@ -45,3 +45,25 @@ resource "google_storage_bucket" "tfstate" {
     }
   }
 }
+
+resource "google_service_account" "terraform" {
+  account_id = "terraform"
+}
+
+resource "google_storage_bucket_iam_member" "tfstate_read_write" {
+  bucket = google_storage_bucket.tfstate.name
+  role   = "roles/storage.objectUser"
+  member = google_service_account.terraform.member
+}
+
+resource "google_project_iam_member" "project_perms" {
+  project = var.project
+  role    = "roles/serviceusage.serviceUsageAdmin"
+  member  = google_service_account.terraform.member
+}
+
+resource "google_service_account_iam_member" "terraform_impasta" {
+  service_account_id = google_service_account.terraform.name
+  role               = "roles/iam.serviceAccountTokenCreator"
+  member             = "user:${var.terraform_admin}"
+}
