@@ -6,7 +6,7 @@ variable "project" {
 variable "region" {
   type        = string
   description = "Region to host in"
-  default     = "us-central-1"
+  default     = "us-central1"
 }
 
 variable "terraform_service_email" {

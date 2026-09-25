@@ -1,6 +1,9 @@
-variable "project" {}
-variable "project_number" {}
+variable "project" {
+  type = string
+}
+
 variable "region" {
+  type    = string
   default = "us-central1"
 }
 
@@ -10,6 +13,6 @@ variable "terraform_admin" {
 }
 
 variable "billing_account" {
-  type = string
+  type        = string
   description = "Billing account ID"
 }
