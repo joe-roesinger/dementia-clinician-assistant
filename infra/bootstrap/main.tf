@@ -6,6 +6,11 @@ terraform {
       version = "~> 8.4"
     }
   }
+
+  backend "gcs" {
+    bucket = "dca-dev-joe-roesinger-tfstate"
+    prefix = "bootstrap"
+  }
 }
 
 provider "google" {
