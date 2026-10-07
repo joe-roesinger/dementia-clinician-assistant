@@ -10,10 +10,12 @@ A clinician-facing AI agent for dementia workups and trial matching, built on GC
 ## Layout
 
 ```text
+data/
+  smoke/        Dummy patient for smoke-testing the FHIR store
 infra/
   bootstrap/    State bucket, Terraform service account, billing budget
   envs/
-    dev/        Dev environment via service account
+    dev/        Project APIs, FHIR store, Artifact Registry, Cloud Run service
 ```
 
 ## Prerequisites
@@ -76,8 +78,8 @@ terraform apply
 - [x] Dev environment with project APIs
 - [x] Terraform service account with impersonation
 - [x] Billing budget managed in Terraform
-- [ ] FHIR store
-- [ ] Artifact Registry and a Cloud Run service
+- [x] FHIR store
+- [x] Artifact Registry and a Cloud Run service
 - [ ] HARD stop on spending limits in GCP
 - [ ] GitHub Actions with Workload Identity Federation
 - [ ] Agent service with one FHIR tool
