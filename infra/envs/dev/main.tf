@@ -74,6 +74,12 @@ resource "google_service_account_iam_member" "terraform_as_agent" {
   member             = "serviceAccount:${var.terraform_service_email}"
 }
 
+resource "google_project_iam_member" "agent_vertex_user" {
+  project = var.project
+  role    = "roles/aiplatform.user"
+  member  = "serviceAccount:${google_service_account.agent.email}"
+}
+
 resource "google_cloud_run_v2_service" "agent" {
   name                = "agent"
   location            = var.region
