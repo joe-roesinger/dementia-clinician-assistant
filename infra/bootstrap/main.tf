@@ -79,6 +79,20 @@ resource "google_project_iam_member" "project_perms" {
   member  = google_service_account.terraform.member
 }
 
+resource "google_project_iam_member" "terraform_grant_agent_roles" {
+  project = var.project
+  role    = "roles/resourcemanager.projectIamAdmin"
+  member  = google_service_account.terraform.member
+
+  # NEVER ADD SETIAMPOLICY/CUSTOM ROLES
+  # THAT LETS IT GRANT ITSELF THINGS !!!
+  condition {
+    title       = "grant-agent-roles-only"
+    description = "Terraforms service account only grant or revoke the following role"
+    expression  = "api.getAttribute('iam.googleapis.com/modifiedGrantsByRole', []).hasOnly(['roles/aiplatform.user'])"
+  }
+}
+
 resource "google_service_account_iam_member" "terraform_impasta" {
   service_account_id = google_service_account.terraform.name
   role               = "roles/iam.serviceAccountTokenCreator"
