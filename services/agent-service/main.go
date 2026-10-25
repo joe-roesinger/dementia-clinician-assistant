@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"http"
 	"log"
 	"os"
 
@@ -13,6 +14,12 @@ import (
 
 func main() {
 	_ = godotenv.Load() // Will figure out a better way to handle this.
+
+	port := os.Getenv("PORT")
+
+	if port == "" {
+		port = "8080"
+	}
 
 	ctx := context.Background()
 
@@ -28,6 +35,10 @@ func main() {
 		log.Fatal("No model configured.")
 	}
 
+	mux := http.NewSeveMux()
+
+	mux.HandleFunc("GET /joke", jokeHandler)
+
 	res, err := client.Models.GenerateContent(ctx, model, genai.Text("Tell me a joke about GOlang"), nil)
 
 	if err != nil {
@@ -35,4 +46,13 @@ func main() {
 	}
 
 	fmt.Println(res.Text())
+}
+
+type mystruct struct {
+	model_id string
+	client   *genai.Client
+}
+
+func jokeHandler(w http.ResponseWriter, r *http.Request) {
+
 }
