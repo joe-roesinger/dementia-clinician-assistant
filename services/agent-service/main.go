@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"http"
+	"io"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	_ = godotenv.Load() // Will figure out a better way to handle this.
+	_ = godotenv.Load() // TODO Will figure out a better way to handle this?
 
 	port := os.Getenv("PORT")
 
@@ -29,30 +29,36 @@ func main() {
 		log.Fatal(err)
 	}
 
-	model := os.Getenv("MODEL_ID")
+	modelId := os.Getenv("MODEL_ID")
 
-	if model == "" {
-		log.Fatal("No model configured.")
+	if modelId == "" {
+		log.Fatal("No modelId configured.")
 	}
 
-	mux := http.NewSeveMux()
+	aiClient := &AiClient{modelId: modelId, client: client}
 
-	mux.HandleFunc("GET /joke", jokeHandler)
-
-	res, err := client.Models.GenerateContent(ctx, model, genai.Text("Tell me a joke about GOlang"), nil)
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /joke", aiClient.jokeHandler)
+	err = http.ListenAndServe(":"+port, mux)
 
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	fmt.Println(res.Text())
 }
 
-type mystruct struct {
-	model_id string
-	client   *genai.Client
+type AiClient struct {
+	modelId string
+	client  *genai.Client
 }
 
-func jokeHandler(w http.ResponseWriter, r *http.Request) {
+func (ai *AiClient) jokeHandler(w http.ResponseWriter, r *http.Request) {
+	res, err := ai.client.Models.GenerateContent(r.Context(), ai.modelId, genai.Text("Tell me a joke about GOlang"), nil)
 
+	if err != nil { // TODO Should move this into more reusable err handling once multiple endpoitns
+		http.Error(w, "Error talking with "+ai.modelId, http.StatusInternalServerError)
+		log.Println(err.Error())
+		return
+	}
+
+	io.WriteString(w, res.Text())
 }
