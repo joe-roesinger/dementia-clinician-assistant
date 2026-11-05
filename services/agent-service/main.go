@@ -39,6 +39,10 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /joke", aiClient.jokeHandler)
+	mux.HandleFunc("GET /healthz", healthzHandler)
+
+	log.Printf("listening on port %s", port)
+
 	err = http.ListenAndServe(":"+port, mux)
 
 	if err != nil {
@@ -61,4 +65,8 @@ func (ai *AiClient) jokeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	io.WriteString(w, res.Text())
+}
+
+func healthzHandler(w http.ResponseWriter, r *http.Request) {
+	io.WriteString(w, "ok")
 }
