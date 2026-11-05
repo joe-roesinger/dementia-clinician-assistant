@@ -39,7 +39,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /joke", aiClient.jokeHandler)
-	mux.HandleFunc("GET /healthz", healthzHandler)
+	mux.HandleFunc("GET /health", healthHandler)
 
 	log.Printf("listening on port %s", port)
 
@@ -67,6 +67,6 @@ func (ai *AiClient) jokeHandler(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, res.Text())
 }
 
-func healthzHandler(w http.ResponseWriter, r *http.Request) {
+func healthHandler(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "ok")
 }
