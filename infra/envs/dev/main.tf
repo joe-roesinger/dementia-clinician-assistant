@@ -91,7 +91,23 @@ resource "google_cloud_run_v2_service" "agent" {
       max_instance_count = 1
     }
     containers {
-      image = "us-docker.pkg.dev/cloudrun/container/hello"
+      image = "us-central1-docker.pkg.dev/dca-dev-joe-roesinger/images/agent-service:${var.image_tag}"
+      env {
+        name  = "GOOGLE_GENAI_USE_VERTEXAI"
+        value = "true"
+      }
+      env {
+        name  = "GOOGLE_CLOUD_PROJECT"
+        value = var.project
+      }
+      env {
+        name  = "GOOGLE_CLOUD_LOCATION"
+        value = "us"
+      }
+      env {
+        name  = "MODEL_ID"
+        value = var.model_id
+      }
     }
   }
 
